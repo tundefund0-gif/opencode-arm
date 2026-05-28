@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="https://github.com/anomalyco/opencode.git"
 INSTALL_DIR="${OPENCODE_ARM_DIR:-$HOME/.opencode-arm}"
 OPENCODE_VERSION="${OPENCODE_VERSION:-main}"
 
@@ -9,7 +8,7 @@ echo "=== opencode-ai 32-bit ARM installer ==="
 echo "Target: $INSTALL_DIR"
 
 # Prerequisites
-for cmd in node npm git; do
+for cmd in node npm curl; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "Missing: $cmd — please install it first"
     exit 1
@@ -24,15 +23,27 @@ fi
 echo "Node.js: $(node -v)"
 echo "npm: $(npm -v)"
 
-# Step 1: Clone or update the repo
+# Step 1: Download opencode source (tarball is more reliable on mobile connections)
 if [ -d "$INSTALL_DIR/src" ]; then
-  echo "Updating existing installation..."
-  cd "$INSTALL_DIR/src"
-  git pull --depth 1 origin "$OPENCODE_VERSION" 2>/dev/null || true
-else
-  echo "Cloning opencode repository..."
-  git clone --depth 1 --branch "$OPENCODE_VERSION" "$REPO" "$INSTALL_DIR/src" 2>/dev/null || \
-    git clone --depth 1 "$REPO" "$INSTALL_DIR/src"
+  echo "Removing previous source..."
+  rm -rf "$INSTALL_DIR/src"
+fi
+
+echo "Downloading opencode source..."
+mkdir -p "$INSTALL_DIR/src"
+curl -fsSL "https://github.com/anomalyco/opencode/archive/refs/heads/main.tar.gz" \
+  -o /tmp/opencode-src.tar.gz 2>/dev/null || {
+  echo "curl failed, falling back to git clone..."
+  if command -v git &>/dev/null; then
+    git clone --depth 1 "https://github.com/anomalyco/opencode.git" "$INSTALL_DIR/src"
+  else
+    echo "Both curl and git failed. Install git and try again."
+    exit 1
+  fi
+}
+if [ -f /tmp/opencode-src.tar.gz ]; then
+  tar xzf /tmp/opencode-src.tar.gz -C "$INSTALL_DIR/src" --strip-components=1
+  rm -f /tmp/opencode-src.tar.gz
 fi
 
 cd "$INSTALL_DIR/src"
