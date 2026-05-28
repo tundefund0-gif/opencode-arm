@@ -133,14 +133,14 @@ PATCHSCRIPT
 node "$INSTALL_DIR/patch-deps.js" 2>&1
 rm -f "$INSTALL_DIR/patch-deps.js"
 
-# Step 3: Install dependencies
+# Step 3: Install dependencies (skip devDeps to avoid platform-specific packages like @parcel/watcher-*)
 echo "Installing dependencies (this may take a while)..."
-npm install --legacy-peer-deps 2>&1 | tail -5 || {
+npm install --omit=dev --legacy-peer-deps 2>&1 | tail -10 || {
   if command -v bun &>/dev/null; then
     echo "npm failed, trying bun install..."
     bun install
   else
-    echo "npm install failed. Try: cd $INSTALL_DIR/src && npm install --legacy-peer-deps"
+    echo "npm install failed. Try: cd $INSTALL_DIR/src && npm install --omit=dev --legacy-peer-deps"
     exit 1
   fi
 }
