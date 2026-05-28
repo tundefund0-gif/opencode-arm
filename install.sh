@@ -88,7 +88,7 @@ const patch = (dir, label) => {
   if (!fs.existsSync(pj)) { console.log("SKIP", label); return; }
   const pkg = JSON.parse(fs.readFileSync(pj, 'utf-8'));
   let dirty = false;
-  for (const key of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+  for (const key of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies', 'overrides']) {
     if (!pkg[key]) continue;
     for (const [name, ver] of Object.entries(pkg[key])) {
       if (typeof ver !== 'string') continue;
@@ -113,7 +113,7 @@ const check = (dir, label) => {
   const pj = path.join(dir, 'package.json');
   if (!fs.existsSync(pj)) return;
   const pkg = JSON.parse(fs.readFileSync(pj, 'utf-8'));
-  for (const key of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+  for (const key of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies', 'overrides']) {
     if (!pkg[key]) continue;
     for (const [n, v] of Object.entries(pkg[key])) {
       if (typeof v === 'string' && (v === 'catalog:' || v.startsWith('workspace:'))) {
